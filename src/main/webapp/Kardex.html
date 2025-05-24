@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <title>Kardex</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+        <style>
+            body {
+                background-color: #121212;
+                color: #00ffe5;
+            }
+            .neon-text {
+                color: #0ff;
+                text-shadow: 0 0 5px #0ff, 0 0 10px #0ff, 0 0 20px #0ff;
+            }
+            .btn-neon {
+                background-color: transparent;
+                color: #0ff;
+                border: 1px solid #0ff;
+            }
+            .btn-neon:hover {
+                background-color: #0ff;
+                color: #000;
+            }
+            .table-dark th, .table-dark td {
+                color: #00ffe5;
+            }
+        </style>
+    </head>
+    <body class="container py-5">
+        <h1 class="neon-text mb-4">Gestión de Kardex</h1>
+
+        <div class="mb-3">
+            <label for="productoSelect" class="form-label">Producto</label>
+            <select id="productoSelect" class="form-select bg-dark text-light"></select>
+        </div>
+
+        <div class="mb-3">
+            <label for="moviKard" class="form-label">Movimiento</label>
+            <select id="moviKard" class="form-select bg-dark text-light">
+                <option value="1">Entrada</option>
+                <option value="0">Salida</option>
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="cantProd" class="form-label">Cantidad</label>
+            <input type="number" id="cantProd" class="form-control bg-dark text-light">
+        </div>
+
+        <div class="mb-3">
+            <label for="stockActual" class="form-label">Stock actual</label>
+            <input type="number" id="stockActual" class="form-control bg-dark text-light" readonly>
+        </div>
+
+        <button id="crearBtn" class="btn btn-neon mb-4" disabled>Crear Registro</button>
+
+        <h2 class="neon-text">Registros Kardex</h2>
+        <table class="table table-dark table-bordered">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Movimiento</th>
+                    <th>Cantidad</th>
+                    <th>Stock</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="tablaKardex"></tbody>
+        </table>
+
+        <script>
+            let productos = [];
+            let kardexes = [];
+            let editarId = null;
+
+            function cargarProductos() {
+                fetch("producto")
+                        .then(res => res.json())
+                        .then(data => {
+                            productos = data;
+                            const select = document.getElementById("productoSelect");
+                            select.innerHTML = "";
+                            data.forEach(prod => {
+                                const option = document.createElement("option");
+                                option.value = prod.idProducto;
+                                option.textContent = prod.nombre;
+                                select.appendChild(option);
+                            });
+                            actualizarStock();
+                        });
+            }
+
+            function actualizarStock() {
+                const idProd = parseInt(document.getElementById("productoSelect").value);
+                const prod = productos.find(p => p.idProducto === idProd);
+                document.getElementById("stockActual").value = prod ? prod.stock : 0;
+                validarStock();
+            }
+
+            function validarStock() {
+                const tipo = parseInt(document.getElementById("moviKard").value);
+                const cantidad = parseInt(document.getElementById("cantProd").value) || 0;
+                const stock = parseInt(document.getElementById("stockActual").value);
+                const btn = document.getElementById("crearBtn");
+
+                if (tipo === 0 && cantidad > stock) {
+                    btn.disabled = true;
+                } else {
+                    btn.disabled = false;
+                }
+            }
+
+            function cargarKardex() {
+                fetch("kardex")
+                        .then(res => res.json())
+                        .then(data => {
+                            const tabla = document.getElementById("tablaKardex");
+                            tabla.innerHTML = "";
+                            data.forEach(k => {
+                                const fila = document.createElement("tr");
+                                fila.innerHTML = `
+                        <td>${k.nombreProducto}</td>
+                        <td>${k.moviKard}</td>
+                        <td>${k.cantProd}</td>
+                        <td>${k.stock}</td>
+                        <td>
+                            <button class="btn btn-sm btn-neon" onclick='editar(${JSON.stringify(k)})'>Editar</button>
+                            <button class="btn btn-sm btn-danger" onclick='eliminar(${k.idKardex})'>Eliminar</button>
+                        </td>
+                    `;
+                                tabla.appendChild(fila);
+                            });
+                        });
+            }
+
+
+            function crear() {
+
+                const obj = {
+                    idProducto: parseInt(document.getElementById("productoSelect").value),
+                    moviKard: parseInt(document.getElementById("moviKard").value),
+                    cantProd: parseInt(document.getElementById("cantProd").value)
+                };
+                console.log(obj.idProducto + 1);
+                if (editarId !== null) {
+                    obj.idKardex = editarId;
+                }
+
+                fetch("kardex", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json;charset=UTF-8"},
+                    body: JSON.stringify(obj)
+                })
+                        .then(res => res.json())
+                        .then(() => {
+                            cargarProductos();
+                            cargarKardex();
+                            document.getElementById("cantProd").value = "";
+                            editarId = null;
+                            document.getElementById("crearBtn").textContent = "Crear Registro";
+                        });
+            }
+
+            function editar(k) {
+                document.getElementById("productoSelect").value = parseInt(document.getElementById("productoSelect").value);
+                document.getElementById("moviKard").value = k.moviKard;
+                document.getElementById("cantProd").value = k.cantProd;
+                editarId = k.idKardex;
+                document.getElementById("crearBtn").textContent = "Actualizar Registro";
+                actualizarStock();
+            }
+
+            function eliminar(id) {
+                if (!confirm("¿Deseas eliminar este registro?"))
+                    return;
+                fetch("kardex", {
+                    method: "DELETE",
+                    headers: {"Content-Type": "application/json;charset=UTF-8"},
+                    body: JSON.stringify({idKardex: id})
+                }).then(() => {
+                    cargarProductos();
+                    cargarKardex();
+                });
+            }
+
+            document.getElementById("productoSelect").addEventListener("change", actualizarStock);
+            document.getElementById("moviKard").addEventListener("change", validarStock);
+            document.getElementById("cantProd").addEventListener("input", validarStock);
+            document.getElementById("crearBtn").addEventListener("click", crear);
+
+            cargarProductos();
+            cargarKardex();
+        </script>
+    </body>
+</html>
+
