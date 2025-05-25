@@ -22,6 +22,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
+
 @WebServlet(name = "DetalleServlet", urlPatterns = {"/detalle"})
 public class DetalleServlet extends HttpServlet {
 
@@ -86,8 +87,6 @@ public class DetalleServlet extends HttpServlet {
     response.setCharacterEncoding("UTF-8");
     response.getWriter().write(jsonArray.toString());
     }*/
-    
-
     EntityManagerFactory emf = Persistence.createEntityManagerFactory("com.mycompany_SistemaVentas_war_1.0-SNAPSHOTPU");
     DetalleventasJpaController detalleDAO;
     VentasJpaController ventasDAO;
@@ -133,6 +132,4 @@ public class DetalleServlet extends HttpServlet {
             response.sendError(500, "Error al guardar detalles: " + e.getMessage());
         }
     }
-}
-
 }
