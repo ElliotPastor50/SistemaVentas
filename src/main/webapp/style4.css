@@ -1,0 +1,91 @@
+body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+    color: #e0f7fa;
+}
+
+h1, h2 {
+    text-align: center;
+    color: #90caf9;
+    text-shadow: 1px 1px 3px #00e5ff;
+}
+
+table {
+    background-color: rgba(15, 21, 28, 0.9) !important;
+    color: #e6edf3 !important;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 10px;
+    box-shadow: 0 0 10px #00f7ffaa;
+}
+
+table th, table td {
+    background-color: transparent !important;
+    color: #e6edf3 !important;
+    border-bottom: 1px solid #003544;
+    padding: 12px 15px;
+    text-align: center;
+    vertical-align: middle;
+}
+
+thead th {
+    background-color: rgba(0, 255, 255, 0.15) !important;
+    text-transform: uppercase;
+}
+
+tr.expandible:hover {
+    background-color: rgba(0, 255, 255, 0.1) !important;
+    cursor: pointer;
+}
+
+tr.expandible.active {
+    background-color: rgba(0, 255, 255, 0.3) !important;
+}
+
+.detalle-oculto {
+    display: none;
+}
+.detalle-visible {
+    display: table-row;
+    background-color: rgba(38, 166, 154, 0.2);
+}
+
+button, .btn-neon {
+    padding: 10px 20px;
+    margin: 10px;
+    border: none;
+    border-radius: 20px;
+    background: #00e5ff;
+    color: #000;
+    font-weight: bold;
+    box-shadow: 0 0 10px #00e5ff;
+    transition: 0.3s;
+    text-decoration: none;
+}
+button:hover, .btn-neon:hover {
+    background: #1de9b6;
+    box-shadow: 0 0 20px #1de9b6;
+}
+
+::-webkit-scrollbar {
+    width: 8px;
+}
+::-webkit-scrollbar-track {
+    background: #2c5364;
+}
+::-webkit-scrollbar-thumb {
+    background: #00e5ff;
+    border-radius: 10px;
+}
+
+.table-container {
+    margin: auto;
+    max-width: 95%;
+    padding: 1.5rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid #00e5ff;
+    border-radius: 1.5rem;
+    box-shadow: 0 0 10px #00e5ff;
+}
+

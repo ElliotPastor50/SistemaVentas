@@ -1,10 +1,7 @@
 package servlet;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import javax.persistence.EntityManagerFactory;
-import javax.persistence.PersistenceUnit;
-import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -70,4 +67,25 @@ public class DetalleServlet extends HttpServlet {
             response.sendError(500, "Error al guardar detalles: " + e.getMessage());
         }
     }
+    
+    @Override
+protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    response.setContentType("application/json;charset=UTF-8");
+    List<Detalleventas> detalles = detalleDAO.findDetalleventasEntities();
+    JSONArray array = new JSONArray();
+
+    for (Detalleventas d : detalles) {
+        JSONObject obj = new JSONObject();
+        obj.put("idDetalleVenta", d.getIdDetalleVenta());
+        obj.put("idVenta", d.getIdVenta().getIdVenta());
+        obj.put("idProducto", d.getIdProducto().getIdProducto());
+        obj.put("cantProd", d.getCantProd());
+        obj.put("detallePrecio", d.getDetallePrecio());
+        obj.put("sbttPrecio", d.getSbttPrecio());
+        array.put(obj);
+    }
+
+    response.getWriter().write(array.toString());
+}
+
 }
