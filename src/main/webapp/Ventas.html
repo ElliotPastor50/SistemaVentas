@@ -97,7 +97,7 @@
             });
 
             async function cargarClientes() {
-                const res = await fetch('/cliente');
+                const res = await fetch('cliente');
                 const list = await res.json();
                 const datalist = document.getElementById('clientes');
                 list.forEach(c => {
@@ -115,7 +115,7 @@
             }
 
             async function cargarProductos() {
-                const res = await fetch('/producto');
+                const res = await fetch('producto');
                 productos = await res.json();
             }
 
@@ -204,13 +204,14 @@
 
             async function registrarVenta() {
                 // Prepara datos
-                const idCliente = +document.getElementById('idCliente').value;
+                const idCli = document.getElementById('idCliente').value;
                 const fecha = document.getElementById('fechaVenta').value;
                 // 1) Registro de Venta
-                const resV = await fetch('/venta', {
+                const resV = await fetch('venta', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({cliente: '', fecha})
+                    // Enviamos ID en lugar de nombre vacío
+                    body: JSON.stringify({idCliente: idCli, fecha})
                 });
                 const jsonV = await resV.json();
                 const idVenta = jsonV.idVenta;
@@ -231,7 +232,7 @@
                         sbttTotal: +price.value * +qty.value
                     });
                 });
-                await fetch('/detalle', {
+                await fetch('detalle', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({idVenta, detalles})
@@ -281,11 +282,11 @@
             }
 
             async function cargarVentasExistentes() {
-                const res = await fetch('/venta');
+                const res = await fetch('venta');
                 const ventas = await res.json();
                 for (const v of ventas) {
                     // Para cada venta, cargar sus detalles
-                    const resD = await fetch('/detalle');
+                    const resD = await fetch('detalle');
                     const allDet = await resD.json();
                     const dets = allDet.filter(d => d.idVenta === v.idVenta);
                     agregarVentaATabla({
