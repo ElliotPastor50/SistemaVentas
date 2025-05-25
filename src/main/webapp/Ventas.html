@@ -18,11 +18,26 @@
                 top: 10px;
                 left: 10px;
             }
+
+            .btn-neon {
+                background-color: transparent;
+                color: #39ff14;
+                border: 1px solid #39ff14;
+            }
+            .btn-neon:hover {
+                background-color: #39ff14;
+                color: #39ff14;
+            }
+
         </style>
     </head>
     <body class="container py-4 position-relative">
 
-        <a href="menu.html" class="btn btn-danger btn-salida">↩️ Menú</a>
+        <div class="mb-3">
+            <a href="menu.html" class="btn btn-neon back-button">
+                🔙 Volver
+            </a>
+        </div>
 
         <h1 class="neon">💸 Registrar Venta</h1>
 
@@ -35,7 +50,7 @@
 
             <div class="mb-3">
                 <label for="fecha" class="form-label">Fecha (opcional):</label>
-                <input type="datetime-local" id="fecha" class="form-control">
+                <input type="date" id="fecha" class="form-control">
             </div>
 
             <table class="table table-dark table-striped">
@@ -90,8 +105,8 @@
               <td><select class="form-select" onchange="actualizarPrecio(this)">
                 ${productos.map(p => `<option value="${p.idProducto}" data-precio="${p.precio}">${p.nombre}</option>`).join("")}
               </select></td>
-              <td><input type="number" class="form-control precio" step="0.01" onchange="actualizarSubtotal(this)"></td>
-              <td><input type="number" class="form-control cantidad" value="1" onchange="actualizarSubtotal(this)"></td>
+              <td><input type="number" class="form-control precio" step="0.01" readonly ></td>
+              <td><input type="number" class="form-control cantidad" value="1" min="1" onchange="actualizarSubtotal(this)"></td>
               <td><input type="number" class="form-control subtotal" readonly></td>
               <td><button type="button" class="btn btn-danger btn-sm" onclick="this.closest('tr').remove()">🗑️</button></td>`;
                 document.getElementById("detalleTabla").appendChild(fila);
@@ -120,11 +135,12 @@
                 if (!clienteObj)
                     return alert("Cliente no encontrado");
 
+                const fechaInput = document.getElementById("fecha").value;
+
                 const venta = {
                     idCliente: clienteObj.idCliente,
-                    fecha: document.getElementById("fecha").value || null
+                    fecha: fechaInput || null
                 };
-
                 fetch("venta", {
                     method: "POST",
                     headers: {"Content-Type": "application/json"},
@@ -147,7 +163,6 @@
                                 const detallePrecio = parseFloat(fila.querySelector(".precio").value);
                                 const cantProd = parseInt(fila.querySelector(".cantidad").value);
                                 const sbttTotal = parseFloat(fila.querySelector(".subtotal").value);
-
                                 detalles.push({idVenta, idProducto, detallePrecio, cantProd, sbttTotal});
                             });
 
@@ -173,6 +188,7 @@
 
             });
 
+
             function cargarVentas() {
                 fetch("venta")
                         .then(res => res.json())
@@ -188,6 +204,56 @@
                             });
                         });
             }
+
+
+            /*
+             function cargarVentas() {
+             fetch("venta")
+             .then(res => res.json())
+             .then(ventas => {
+             const tabla = document.getElementById("tablaVentas");
+             tabla.innerHTML = "";
+             ventas.forEach(v => {
+             console.log('Fecha recibida:', v.fecha); // para debug
+             
+             let fechaFormateada = "—";
+             if (v.fecha) {
+             // Prueba crear la fecha directo
+             let d = new Date(v.fecha);
+             if (isNaN(d)) {
+             // Si no es válido, parsear manualmente (ejemplo con formato dd-MM-yyyy hh:mm)
+             const [fechaPart, horaPart] = v.fecha.split(' ');
+             if (fechaPart && horaPart) {
+             const [dia, mes, anio] = fechaPart.split('-').map(Number);
+             const [horas, minutos] = horaPart.split(':').map(Number);
+             d = new Date(anio, mes - 1, dia, horas, minutos);
+             }
+             }
+             
+             if (!isNaN(d)) {
+             const pad = (n) => n.toString().padStart(2, '0');
+             
+             const dia = pad(d.getDate());
+             const mes = pad(d.getMonth() + 1);
+             const anio = d.getFullYear();
+             
+             const horas = pad(d.getHours());
+             const minutos = pad(d.getMinutes());
+             
+             fechaFormateada = `${dia}-${mes}-${anio} ${horas}:${minutos}`;
+             }
+             }
+             
+             tabla.innerHTML += `<tr>
+             <td>${v.idVenta}</td>
+             <td>${v.nombreCliente}</td>
+             <td>${fechaFormateada}</td>
+             </tr>`;
+             });
+             });
+             }
+             
+             */
         </script>
     </body>
 </html>

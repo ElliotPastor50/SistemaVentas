@@ -5,25 +5,22 @@ import dao.ClientesJpaController;
 import dto.Clientes;
 import dto.Ventas;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.sql.Timestamp;
 import java.util.List;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
-import javax.persistence.PersistenceUnit;
-import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
 @WebServlet(name = "VentasServlet", urlPatterns = {"/venta"})
 public class VentaServlet extends HttpServlet {
 
-   
     EntityManagerFactory emf = Persistence.createEntityManagerFactory("com.mycompany_SistemaVentas_war_1.0-SNAPSHOTPU");
     VentasJpaController ventaDAO;
     ClientesJpaController clienteDAO;
@@ -37,7 +34,7 @@ public class VentaServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
         response.setContentType("application/json;charset=UTF-8");
-        
+
         List<Ventas> ventas = ventaDAO.findVentasEntities();
         JSONArray array = new JSONArray();
 
@@ -55,25 +52,43 @@ public class VentaServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
         response.setContentType("application/json;charset=UTF-8");
-        
+
+        Timestamp fechaVenta;
+
         JSONObject data = new JSONObject(new JSONTokener(request.getReader()));
         Ventas venta = new Ventas();
 
-        // cliente y fecha
+        // cliente
         Clientes cliente = clienteDAO.findClientes(data.getInt("idCliente"));
-        venta.setIdCliente(cliente);
-        if (data.has("fecha") && !data.isNull("fecha")) {
-            venta.setFechaVenta(Timestamp.valueOf(data.getString("fecha").replace("T", " ") + ":00"));
+        if (cliente == null) {
+            response.sendError(400, "Cliente no encontrado");
+            return;
         }
+        venta.setIdCliente(cliente);
+
+        // fecha
+        try {
+            if (data.has("fecha") && !data.isNull("fecha") && !data.getString("fecha").isBlank()) {
+                String fechaStr = data.getString("fecha");
+                fechaVenta = Timestamp.valueOf(fechaStr + " 00:00:00");
+            } else {
+                fechaVenta = new Timestamp(System.currentTimeMillis());
+            }
+        } catch (IllegalArgumentException ex) {
+            response.sendError(400, "Formato de fecha inválido. Usa yyyy-MM-dd");
+            return;
+        }
+
+        venta.setFechaVenta(fechaVenta);
 
         try {
             ventaDAO.create(venta);
             JSONObject res = new JSONObject();
             res.put("idVenta", venta.getIdVenta());
-            response.setContentType("application/json;charset=UTF-8");
             response.getWriter().print(res.toString());
-        } catch (Exception e) {
-            response.sendError(500, e.getMessage());
+        } catch (IOException | JSONException e) {
+            e.printStackTrace();
+            response.sendError(500, "Error al guardar venta: " + e.getMessage());
         }
     }
 }
