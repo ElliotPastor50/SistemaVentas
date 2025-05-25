@@ -102,30 +102,75 @@
             function agregarFila() {
                 const fila = document.createElement("tr");
                 fila.innerHTML = `
-              <td><select class="form-select" onchange="actualizarPrecio(this)">
-                ${productos.map(p => `<option value="${p.idProducto}" data-precio="${p.precio}">${p.nombre}</option>`).join("")}
-              </select></td>
-              <td><input type="number" class="form-control precio" step="0.01" readonly ></td>
-              <td><input type="number" class="form-control cantidad" value="1" min="1" onchange="actualizarSubtotal(this)"></td>
-              <td><input type="number" class="form-control subtotal" readonly></td>
-              <td><button type="button" class="btn btn-danger btn-sm" onclick="this.closest('tr').remove()">🗑️</button></td>`;
+        <td><select class="form-select" onchange="actualizarPrecio(this)">
+        ${productos.map(p => `<option value="${p.idProducto}" data-precio="${p.precio}" data-stock="${p.stock}">${p.nombre}</option>`).join("")}
+        </select></td>
+        <td><input type="number" class="form-control precio" step="0.01" readonly ></td>
+        <td><input type="number" class="form-control cantidad" value="1" min="1" onchange="actualizarSubtotal(this)"></td>
+        <td><input type="number" class="form-control subtotal" readonly></td>
+        <td><button type="button" class="btn btn-danger btn-sm" onclick="eliminarFila(this)">🗑️</button></td>
+    `;
                 document.getElementById("detalleTabla").appendChild(fila);
                 actualizarPrecio(fila.querySelector("select"));
+                actualizarBotonesEliminar();
             }
+
+            function eliminarFila(btn) {
+                const tabla = document.getElementById("detalleTabla");
+                if (tabla.rows.length > 1) {
+                    btn.closest("tr").remove();
+                    actualizarBotonesEliminar();
+                } else {
+                    alert("Debe haber al menos un producto en la venta.");
+                }
+            }
+
+            function actualizarBotonesEliminar() {
+                const filas = document.querySelectorAll("#detalleTabla tr");
+                filas.forEach(fila => {
+                    const boton = fila.querySelector("button");
+                    boton.disabled = filas.length === 1;
+                });
+            }
+
 
             function actualizarPrecio(select) {
                 const precio = select.selectedOptions[0].dataset.precio;
+                const stock = select.selectedOptions[0].dataset.stock;
                 const fila = select.closest("tr");
                 fila.querySelector(".precio").value = precio;
+
+                const cantidadInput = fila.querySelector(".cantidad");
+                cantidadInput.max = stock; // limitar la cantidad máxima
+                if (parseInt(cantidadInput.value) > stock) {
+                    cantidadInput.value = stock;
+                }
+
                 actualizarSubtotal(fila.querySelector(".precio"));
             }
 
             function actualizarSubtotal(input) {
                 const fila = input.closest("tr");
+
+                const select = fila.querySelector("select");
+                const idProducto = parseInt(select.value);
+
+                const producto = productos.find(p => p.idProducto === idProducto);
+                if (!producto)
+                    return;
+
                 const precio = parseFloat(fila.querySelector(".precio").value) || 0;
-                const cantidad = parseInt(fila.querySelector(".cantidad").value) || 0;
+                let cantidad = parseInt(fila.querySelector(".cantidad").value) || 0;
+
+                if (cantidad > producto.stock) {
+                    alert("Stock insuficiente. Solo hay " + producto.stock + " unidades disponibles.");
+                    cantidad = producto.stock;
+                    fila.querySelector(".cantidad").value = cantidad;
+                }
+
                 fila.querySelector(".subtotal").value = (precio * cantidad).toFixed(2);
             }
+
 
             document.getElementById("formVenta").addEventListener("submit", e => {
                 e.preventDefault();
@@ -180,6 +225,7 @@
                             document.getElementById("detalleTabla").innerHTML = "";
                             agregarFila();
                             cargarVentas();
+                            cargarProductos();
                         })
                         .catch(err => {
                             console.error(err);
@@ -187,6 +233,16 @@
                         });
 
             });
+
+            function cargarProductos() {
+                fetch('/producto')
+                        .then(res => res.json())
+                        .then(data => {
+                            // Aquí vuelves a poblar tu lista o dropdown
+                            productos = data;
+                            renderProductos(productos);
+                        });
+            }
 
 
             function cargarVentas() {
@@ -203,6 +259,17 @@
                   </tr>`;
                             });
                         });
+            }
+
+            function validarCantidad(inputCantidad, idProducto) {
+                const producto = productos.find(p => p.idProducto === idProducto);
+                if (!producto)
+                    return;
+
+                if (parseInt(inputCantidad.value) > producto.stock) {
+                    alert("No puedes seleccionar más de " + producto.stock + " unidades");
+                    inputCantidad.value = producto.stock;
+                }
             }
 
         </script>

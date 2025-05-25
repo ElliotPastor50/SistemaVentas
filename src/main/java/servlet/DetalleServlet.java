@@ -9,7 +9,6 @@ import javax.servlet.http.HttpServletResponse;
 import dao.DetalleventasJpaController;
 import dao.VentasJpaController;
 import dao.ProductosJpaController;
-import dao.exceptions.IllegalOrphanException;
 import dto.Detalleventas;
 import dto.Productos;
 import dto.Ventas;
@@ -62,7 +61,7 @@ public class DetalleServlet extends HttpServlet {
             }
 
             response.setStatus(201); // Created
-        } catch (IllegalOrphanException | IOException | JSONException e) {
+        } catch ( IOException | JSONException e) {
             e.printStackTrace();
             response.sendError(500, "Error al guardar detalles: " + e.getMessage());
         }

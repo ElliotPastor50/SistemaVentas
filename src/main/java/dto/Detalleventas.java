@@ -8,6 +8,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToOne;
@@ -44,11 +45,11 @@ public class Detalleventas implements Serializable {
     @NotNull
     @Column(name = "SbttPrecio")
     private double sbttPrecio;
-    @JoinColumn(name = "IdProducto", referencedColumnName = "IdProducto")
-    @OneToOne(optional = false)
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "idProducto", nullable = false)
     private Productos idProducto;
     @JoinColumn(name = "IdVenta", referencedColumnName = "IdVenta")
-    @OneToOne(optional = false)
+    @ManyToOne(optional = false)
     private Ventas idVenta;
 
     public Detalleventas() {
@@ -137,5 +138,5 @@ public class Detalleventas implements Serializable {
     public String toString() {
         return "dto.Detalleventas[ idDetalleVenta=" + idDetalleVenta + " ]";
     }
-    
+
 }

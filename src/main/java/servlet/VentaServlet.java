@@ -2,11 +2,18 @@ package servlet;
 
 import dao.VentasJpaController;
 import dao.ClientesJpaController;
+import dao.DetalleventasJpaController;
+import dao.ProductosJpaController;
+import dao.exceptions.NonexistentEntityException;
 import dto.Clientes;
+import dto.Detalleventas;
+import dto.Productos;
 import dto.Ventas;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.servlet.annotation.WebServlet;
@@ -24,11 +31,15 @@ public class VentaServlet extends HttpServlet {
     EntityManagerFactory emf = Persistence.createEntityManagerFactory("com.mycompany_SistemaVentas_war_1.0-SNAPSHOTPU");
     VentasJpaController ventaDAO;
     ClientesJpaController clienteDAO;
+    ProductosJpaController productoDAO;
+    DetalleventasJpaController detalleDAO;
 
     @Override
     public void init() {
         this.ventaDAO = new VentasJpaController(emf);
         this.clienteDAO = new ClientesJpaController(emf);
+        this.productoDAO = new ProductosJpaController(emf);
+        this.detalleDAO = new DetalleventasJpaController(emf);
     }
 
     @Override
@@ -53,12 +64,10 @@ public class VentaServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
         response.setContentType("application/json;charset=UTF-8");
 
-        Timestamp fechaVenta;
-
+        /*        Timestamp fechaVenta;*/
         JSONObject data = new JSONObject(new JSONTokener(request.getReader()));
         Ventas venta = new Ventas();
 
-        // cliente
         Clientes cliente = clienteDAO.findClientes(data.getInt("idCliente"));
         if (cliente == null) {
             response.sendError(400, "Cliente no encontrado");
@@ -66,29 +75,68 @@ public class VentaServlet extends HttpServlet {
         }
         venta.setIdCliente(cliente);
 
-        // fecha
         try {
             if (data.has("fecha") && !data.isNull("fecha") && !data.getString("fecha").isBlank()) {
                 String fechaStr = data.getString("fecha");
-                fechaVenta = Timestamp.valueOf(fechaStr + " 00:00:00");
+                venta.setFechaVenta(Timestamp.valueOf(fechaStr + " 00:00:00"));
             } else {
-                fechaVenta = new Timestamp(System.currentTimeMillis());
+                venta.setFechaVenta(new Timestamp(System.currentTimeMillis()));
             }
         } catch (IllegalArgumentException ex) {
             response.sendError(400, "Formato de fecha inválido. Usa yyyy-MM-dd");
             return;
         }
 
-        venta.setFechaVenta(fechaVenta);
-
         try {
+            // Crear la venta primero sin detalles
             ventaDAO.create(venta);
+
+            if (data.has("detalles")) {
+                JSONArray detalles = data.getJSONArray("detalles");
+
+                for (int i = 0; i < detalles.length(); i++) {
+                    JSONObject detalleObj = detalles.getJSONObject(i);
+                    int idProducto = detalleObj.getInt("idProducto");
+                    int cantidadVendida = detalleObj.getInt("cantProd");
+
+                    Productos productoManaged = productoDAO.findProductos(idProducto);
+                    if (productoManaged == null) {
+                        response.sendError(400, "Producto no encontrado: " + idProducto);
+                        return;
+                    }
+
+                    //stock y venta
+                    if (cantidadVendida > productoManaged.getStock()) {
+                        response.sendError(HttpServletResponse.SC_CONFLICT, "Stock insuficiente para el producto: " + productoManaged.getNombre());
+                        return;
+                    }
+
+                    int nuevoStock = productoManaged.getStock() - cantidadVendida;
+                    productoManaged.setStock(nuevoStock);
+                    productoDAO.edit(productoManaged);
+
+                    // Crear detalle de venta
+                    Detalleventas detalleVenta = new Detalleventas();
+                    detalleVenta.setIdVenta(venta);
+                    detalleVenta.setIdProducto(productoManaged);
+                    detalleVenta.setCantProd(cantidadVendida);
+                    detalleVenta.setDetallePrecio(productoManaged.getPrecio() * cantidadVendida);
+
+                    detalleDAO.create(detalleVenta);
+                }
+            }
+
             JSONObject res = new JSONObject();
             res.put("idVenta", venta.getIdVenta());
             response.getWriter().print(res.toString());
+
         } catch (IOException | JSONException e) {
-            e.printStackTrace();
             response.sendError(500, "Error al guardar venta: " + e.getMessage());
+        } catch (NonexistentEntityException ex) {
+            Logger.getLogger(VentaServlet.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            response.sendError(500, "Error al guardar venta: " + ex.getMessage());
         }
     }
 }

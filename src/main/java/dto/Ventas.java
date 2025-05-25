@@ -1,7 +1,9 @@
 package dto;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -13,7 +15,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-import javax.persistence.OneToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -40,8 +42,9 @@ public class Ventas implements Serializable {
     @Column(name = "fecha_venta")
     @Temporal(TemporalType.TIMESTAMP)
     private Date fechaVenta;
-    @OneToOne(cascade = CascadeType.ALL, mappedBy = "idVenta")
-    private Detalleventas detalleventas;
+    @OneToMany(mappedBy = "idVenta", cascade = CascadeType.ALL)
+    private List<Detalleventas> detalleventasList;
+
     @JoinColumn(name = "IdCliente", referencedColumnName = "IdCliente")
     @ManyToOne(optional = false)
     private Clientes idCliente;
@@ -74,12 +77,12 @@ public class Ventas implements Serializable {
         this.fechaVenta = fechaVenta;
     }
 
-    public Detalleventas getDetalleventas() {
-        return detalleventas;
+    public List<Detalleventas> getDetalleventasList() {
+        return detalleventasList;
     }
 
-    public void setDetalleventas(Detalleventas detalleventas) {
-        this.detalleventas = detalleventas;
+    public void setDetalleventasList(List<Detalleventas> detalleventasList) {
+        this.detalleventasList = detalleventasList;
     }
 
     public Clientes getIdCliente() {
@@ -99,7 +102,7 @@ public class Ventas implements Serializable {
 
     @Override
     public boolean equals(Object object) {
-        // TODO: Warning - this method won't work in the case the id fields are not set
+
         if (!(object instanceof Ventas)) {
             return false;
         }
@@ -114,5 +117,5 @@ public class Ventas implements Serializable {
     public String toString() {
         return "dto.Ventas[ idVenta=" + idVenta + " ]";
     }
-    
+
 }

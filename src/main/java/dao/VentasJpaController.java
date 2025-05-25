@@ -16,7 +16,6 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 
-
 public class VentasJpaController implements Serializable {
 
     public VentasJpaController(EntityManagerFactory emf) {
@@ -33,26 +32,34 @@ public class VentasJpaController implements Serializable {
         try {
             em = getEntityManager();
             em.getTransaction().begin();
-            Detalleventas detalleventas = ventas.getDetalleventas();
-            if (detalleventas != null) {
-                detalleventas = em.getReference(detalleventas.getClass(), detalleventas.getIdDetalleVenta());
-                ventas.setDetalleventas(detalleventas);
+            List<Detalleventas> detalleventasList = ventas.getDetalleventasList();
+            if (detalleventasList != null) {
+                List<Detalleventas> attachedDetalleventasList = new ArrayList<>();
+                for (Detalleventas detalleventas : detalleventasList) {
+                    detalleventas = em.getReference(detalleventas.getClass(), detalleventas.getIdDetalleVenta());
+                    attachedDetalleventasList.add(detalleventas);
+                }
+                ventas.setDetalleventasList(attachedDetalleventasList);
             }
+
             Clientes idCliente = ventas.getIdCliente();
             if (idCliente != null) {
                 idCliente = em.getReference(idCliente.getClass(), idCliente.getIdCliente());
                 ventas.setIdCliente(idCliente);
             }
             em.persist(ventas);
-            if (detalleventas != null) {
-                Ventas oldIdVentaOfDetalleventas = detalleventas.getIdVenta();
-                if (oldIdVentaOfDetalleventas != null) {
-                    oldIdVentaOfDetalleventas.setDetalleventas(null);
-                    oldIdVentaOfDetalleventas = em.merge(oldIdVentaOfDetalleventas);
+            if (detalleventasList != null) {
+                for (Detalleventas detalleventas : detalleventasList) {
+                    Ventas oldIdVentaOfDetalleventas = detalleventas.getIdVenta();
+                    detalleventas.setIdVenta(ventas);
+                    detalleventas = em.merge(detalleventas);
+                    if (oldIdVentaOfDetalleventas != null && !oldIdVentaOfDetalleventas.equals(ventas)) {
+                        oldIdVentaOfDetalleventas.getDetalleventasList().remove(detalleventas);
+                        oldIdVentaOfDetalleventas = em.merge(oldIdVentaOfDetalleventas);
+                    }
                 }
-                detalleventas.setIdVenta(ventas);
-                detalleventas = em.merge(detalleventas);
             }
+
             if (idCliente != null) {
                 idCliente.getVentasCollection().add(ventas);
                 idCliente = em.merge(idCliente);
@@ -71,38 +78,50 @@ public class VentasJpaController implements Serializable {
             em = getEntityManager();
             em.getTransaction().begin();
             Ventas persistentVentas = em.find(Ventas.class, ventas.getIdVenta());
-            Detalleventas detalleventasOld = persistentVentas.getDetalleventas();
-            Detalleventas detalleventasNew = ventas.getDetalleventas();
+            List<Detalleventas> detalleventasListOld = persistentVentas.getDetalleventasList();
+            List<Detalleventas> detalleventasListNew = ventas.getDetalleventasList();
+
             Clientes idClienteOld = persistentVentas.getIdCliente();
             Clientes idClienteNew = ventas.getIdCliente();
+
             List<String> illegalOrphanMessages = null;
-            if (detalleventasOld != null && !detalleventasOld.equals(detalleventasNew)) {
-                if (illegalOrphanMessages == null) {
-                    illegalOrphanMessages = new ArrayList<String>();
+            for (Detalleventas oldDetalle : detalleventasListOld) {
+                if (!detalleventasListNew.contains(oldDetalle)) {
+                    if (illegalOrphanMessages == null) {
+                        illegalOrphanMessages = new ArrayList<>();
+                    }
+                    illegalOrphanMessages.add("You must retain Detalleventas " + oldDetalle + " since its idVenta field is not nullable.");
                 }
-                illegalOrphanMessages.add("You must retain Detalleventas " + detalleventasOld + " since its idVenta field is not nullable.");
             }
             if (illegalOrphanMessages != null) {
                 throw new IllegalOrphanException(illegalOrphanMessages);
             }
-            if (detalleventasNew != null) {
-                detalleventasNew = em.getReference(detalleventasNew.getClass(), detalleventasNew.getIdDetalleVenta());
-                ventas.setDetalleventas(detalleventasNew);
+
+            List<Detalleventas> attachedDetalleventasListNew = new ArrayList<>();
+            for (Detalleventas newDetalle : detalleventasListNew) {
+                newDetalle = em.getReference(newDetalle.getClass(), newDetalle.getIdDetalleVenta());
+                attachedDetalleventasListNew.add(newDetalle);
             }
+            ventas.setDetalleventasList(attachedDetalleventasListNew);
+
             if (idClienteNew != null) {
                 idClienteNew = em.getReference(idClienteNew.getClass(), idClienteNew.getIdCliente());
                 ventas.setIdCliente(idClienteNew);
             }
             ventas = em.merge(ventas);
-            if (detalleventasNew != null && !detalleventasNew.equals(detalleventasOld)) {
-                Ventas oldIdVentaOfDetalleventas = detalleventasNew.getIdVenta();
-                if (oldIdVentaOfDetalleventas != null) {
-                    oldIdVentaOfDetalleventas.setDetalleventas(null);
-                    oldIdVentaOfDetalleventas = em.merge(oldIdVentaOfDetalleventas);
+
+            for (Detalleventas newDetalle : detalleventasListNew) {
+                if (!detalleventasListOld.contains(newDetalle)) {
+                    Ventas oldIdVentaOfDetalleventas = newDetalle.getIdVenta();
+                    newDetalle.setIdVenta(ventas);
+                    newDetalle = em.merge(newDetalle);
+                    if (oldIdVentaOfDetalleventas != null && !oldIdVentaOfDetalleventas.equals(ventas)) {
+                        oldIdVentaOfDetalleventas.getDetalleventasList().remove(newDetalle);
+                        oldIdVentaOfDetalleventas = em.merge(oldIdVentaOfDetalleventas);
+                    }
                 }
-                detalleventasNew.setIdVenta(ventas);
-                detalleventasNew = em.merge(detalleventasNew);
             }
+
             if (idClienteOld != null && !idClienteOld.equals(idClienteNew)) {
                 idClienteOld.getVentasCollection().remove(ventas);
                 idClienteOld = em.merge(idClienteOld);
@@ -140,13 +159,17 @@ public class VentasJpaController implements Serializable {
             } catch (EntityNotFoundException enfe) {
                 throw new NonexistentEntityException("The ventas with id " + id + " no longer exists.", enfe);
             }
+
             List<String> illegalOrphanMessages = null;
-            Detalleventas detalleventasOrphanCheck = ventas.getDetalleventas();
-            if (detalleventasOrphanCheck != null) {
+            List<Detalleventas> detalleventasOrphanCheck = ventas.getDetalleventasList();
+
+            if (detalleventasOrphanCheck != null && !detalleventasOrphanCheck.isEmpty()) {
                 if (illegalOrphanMessages == null) {
-                    illegalOrphanMessages = new ArrayList<String>();
+                    illegalOrphanMessages = new ArrayList<>();
                 }
-                illegalOrphanMessages.add("This Ventas (" + ventas + ") cannot be destroyed since the Detalleventas " + detalleventasOrphanCheck + " in its detalleventas field has a non-nullable idVenta field.");
+                for (Detalleventas detalle : detalleventasOrphanCheck) {
+                    illegalOrphanMessages.add("This Ventas (" + ventas + ") cannot be destroyed since the Detalleventas " + detalle + " in its detalleventasList has a non-nullable idVenta field.");
+                }
             }
             if (illegalOrphanMessages != null) {
                 throw new IllegalOrphanException(illegalOrphanMessages);
@@ -210,5 +233,4 @@ public class VentasJpaController implements Serializable {
             em.close();
         }
     }
-    
 }

@@ -27,54 +27,36 @@ public class DetalleventasJpaController implements Serializable {
         return emf.createEntityManager();
     }
 
-    public void create(Detalleventas detalleventas) throws IllegalOrphanException {
-        List<String> illegalOrphanMessages = null;
-        Productos idProductoOrphanCheck = detalleventas.getIdProducto();
-        if (idProductoOrphanCheck != null) {
-            Detalleventas oldDetalleventasOfIdProducto = idProductoOrphanCheck.getDetalleventas();
-            if (oldDetalleventasOfIdProducto != null) {
-                if (illegalOrphanMessages == null) {
-                    illegalOrphanMessages = new ArrayList<String>();
-                }
-                illegalOrphanMessages.add("The Productos " + idProductoOrphanCheck + " already has an item of type Detalleventas whose idProducto column cannot be null. Please make another selection for the idProducto field.");
-            }
-        }
-        Ventas idVentaOrphanCheck = detalleventas.getIdVenta();
-        if (idVentaOrphanCheck != null) {
-            Detalleventas oldDetalleventasOfIdVenta = idVentaOrphanCheck.getDetalleventas();
-            if (oldDetalleventasOfIdVenta != null) {
-                if (illegalOrphanMessages == null) {
-                    illegalOrphanMessages = new ArrayList<String>();
-                }
-                illegalOrphanMessages.add("The Ventas " + idVentaOrphanCheck + " already has an item of type Detalleventas whose idVenta column cannot be null. Please make another selection for the idVenta field.");
-            }
-        }
-        if (illegalOrphanMessages != null) {
-            throw new IllegalOrphanException(illegalOrphanMessages);
-        }
+    public void create(Detalleventas detalleventas) {
         EntityManager em = null;
         try {
             em = getEntityManager();
             em.getTransaction().begin();
+
             Productos idProducto = detalleventas.getIdProducto();
             if (idProducto != null) {
                 idProducto = em.getReference(idProducto.getClass(), idProducto.getIdProducto());
                 detalleventas.setIdProducto(idProducto);
             }
+
             Ventas idVenta = detalleventas.getIdVenta();
             if (idVenta != null) {
                 idVenta = em.getReference(idVenta.getClass(), idVenta.getIdVenta());
                 detalleventas.setIdVenta(idVenta);
             }
+
             em.persist(detalleventas);
+
             if (idProducto != null) {
-                idProducto.setDetalleventas(detalleventas);
-                idProducto = em.merge(idProducto);
+                idProducto.getDetalleventasList().add(detalleventas);
+                em.merge(idProducto);
             }
+
             if (idVenta != null) {
-                idVenta.setDetalleventas(detalleventas);
-                idVenta = em.merge(idVenta);
+                idVenta.getDetalleventasList().add(detalleventas);
+                em.merge(idVenta);
             }
+
             em.getTransaction().commit();
         } finally {
             if (em != null) {
@@ -83,110 +65,92 @@ public class DetalleventasJpaController implements Serializable {
         }
     }
 
-    public void edit(Detalleventas detalleventas) throws IllegalOrphanException, NonexistentEntityException, Exception {
-        EntityManager em = null;
-        try {
-            em = getEntityManager();
-            em.getTransaction().begin();
-            Detalleventas persistentDetalleventas = em.find(Detalleventas.class, detalleventas.getIdDetalleVenta());
-            Productos idProductoOld = persistentDetalleventas.getIdProducto();
-            Productos idProductoNew = detalleventas.getIdProducto();
-            Ventas idVentaOld = persistentDetalleventas.getIdVenta();
-            Ventas idVentaNew = detalleventas.getIdVenta();
-            List<String> illegalOrphanMessages = null;
-            if (idProductoNew != null && !idProductoNew.equals(idProductoOld)) {
-                Detalleventas oldDetalleventasOfIdProducto = idProductoNew.getDetalleventas();
-                if (oldDetalleventasOfIdProducto != null) {
-                    if (illegalOrphanMessages == null) {
-                        illegalOrphanMessages = new ArrayList<String>();
-                    }
-                    illegalOrphanMessages.add("The Productos " + idProductoNew + " already has an item of type Detalleventas whose idProducto column cannot be null. Please make another selection for the idProducto field.");
-                }
-            }
-            if (idVentaNew != null && !idVentaNew.equals(idVentaOld)) {
-                Detalleventas oldDetalleventasOfIdVenta = idVentaNew.getDetalleventas();
-                if (oldDetalleventasOfIdVenta != null) {
-                    if (illegalOrphanMessages == null) {
-                        illegalOrphanMessages = new ArrayList<String>();
-                    }
-                    illegalOrphanMessages.add("The Ventas " + idVentaNew + " already has an item of type Detalleventas whose idVenta column cannot be null. Please make another selection for the idVenta field.");
-                }
-            }
-            if (illegalOrphanMessages != null) {
-                throw new IllegalOrphanException(illegalOrphanMessages);
-            }
-            if (idProductoNew != null) {
-                idProductoNew = em.getReference(idProductoNew.getClass(), idProductoNew.getIdProducto());
-                detalleventas.setIdProducto(idProductoNew);
-            }
-            if (idVentaNew != null) {
-                idVentaNew = em.getReference(idVentaNew.getClass(), idVentaNew.getIdVenta());
-                detalleventas.setIdVenta(idVentaNew);
-            }
-            detalleventas = em.merge(detalleventas);
-            if (idProductoOld != null && !idProductoOld.equals(idProductoNew)) {
-                idProductoOld.setDetalleventas(null);
-                idProductoOld = em.merge(idProductoOld);
-            }
-            if (idProductoNew != null && !idProductoNew.equals(idProductoOld)) {
-                idProductoNew.setDetalleventas(detalleventas);
-                idProductoNew = em.merge(idProductoNew);
-            }
-            if (idVentaOld != null && !idVentaOld.equals(idVentaNew)) {
-                idVentaOld.setDetalleventas(null);
-                idVentaOld = em.merge(idVentaOld);
-            }
-            if (idVentaNew != null && !idVentaNew.equals(idVentaOld)) {
-                idVentaNew.setDetalleventas(detalleventas);
-                idVentaNew = em.merge(idVentaNew);
-            }
-            em.getTransaction().commit();
-        } catch (Exception ex) {
-            String msg = ex.getLocalizedMessage();
-            if (msg == null || msg.length() == 0) {
-                Integer id = detalleventas.getIdDetalleVenta();
-                if (findDetalleventas(id) == null) {
-                    throw new NonexistentEntityException("The detalleventas with id " + id + " no longer exists.");
-                }
-            }
-            throw ex;
-        } finally {
-            if (em != null) {
-                em.close();
-            }
-        }
-    }
+    public void edit(Detalleventas detalleventas) throws NonexistentEntityException, Exception {
+    EntityManager em = null;
+    try {
+        em = getEntityManager();
+        em.getTransaction().begin();
 
-    public void destroy(Integer id) throws NonexistentEntityException {
-        EntityManager em = null;
-        try {
-            em = getEntityManager();
-            em.getTransaction().begin();
-            Detalleventas detalleventas;
-            try {
-                detalleventas = em.getReference(Detalleventas.class, id);
-                detalleventas.getIdDetalleVenta();
-            } catch (EntityNotFoundException enfe) {
-                throw new NonexistentEntityException("The detalleventas with id " + id + " no longer exists.", enfe);
-            }
-            Productos idProducto = detalleventas.getIdProducto();
-            if (idProducto != null) {
-                idProducto.setDetalleventas(null);
-                idProducto = em.merge(idProducto);
-            }
-            Ventas idVenta = detalleventas.getIdVenta();
-            if (idVenta != null) {
-                idVenta.setDetalleventas(null);
-                idVenta = em.merge(idVenta);
-            }
-            em.remove(detalleventas);
-            em.getTransaction().commit();
-        } finally {
-            if (em != null) {
-                em.close();
+        Detalleventas persistentDetalleventas = em.find(Detalleventas.class, detalleventas.getIdDetalleVenta());
+
+        Productos idProductoOld = persistentDetalleventas.getIdProducto();
+        Productos idProductoNew = detalleventas.getIdProducto();
+
+        Ventas idVentaOld = persistentDetalleventas.getIdVenta();
+        Ventas idVentaNew = detalleventas.getIdVenta();
+
+        if (idProductoNew != null) {
+            idProductoNew = em.getReference(idProductoNew.getClass(), idProductoNew.getIdProducto());
+            detalleventas.setIdProducto(idProductoNew);
+        }
+
+        if (idVentaNew != null) {
+            idVentaNew = em.getReference(idVentaNew.getClass(), idVentaNew.getIdVenta());
+            detalleventas.setIdVenta(idVentaNew);
+        }
+
+        detalleventas = em.merge(detalleventas);
+
+        if (idProductoOld != null && !idProductoOld.equals(idProductoNew)) {
+            idProductoOld.getDetalleventasList().remove(persistentDetalleventas);
+            em.merge(idProductoOld);
+        }
+
+        if (idProductoNew != null && !idProductoNew.equals(idProductoOld)) {
+            idProductoNew.getDetalleventasList().add(detalleventas);
+            em.merge(idProductoNew);
+        }
+
+        if (idVentaOld != null && !idVentaOld.equals(idVentaNew)) {
+            idVentaOld.getDetalleventasList().remove(persistentDetalleventas);
+            em.merge(idVentaOld);
+        }
+
+        if (idVentaNew != null && !idVentaNew.equals(idVentaOld)) {
+            idVentaNew.getDetalleventasList().add(detalleventas);
+            em.merge(idVentaNew);
+        }
+
+        em.getTransaction().commit();
+    } catch (Exception ex) {
+        String msg = ex.getLocalizedMessage();
+        if (msg == null || msg.length() == 0) {
+            Integer id = detalleventas.getIdDetalleVenta();
+            if (findDetalleventas(id) == null) {
+                throw new NonexistentEntityException("El detalleventas con ID " + id + " ya no existe.");
             }
         }
+        throw ex;
+    } finally {
+        if (em != null) {
+            em.close();
+        }
     }
+}
+
+
+        public void destroy(Integer id) throws NonexistentEntityException {
+    EntityManager em = null;
+    try {
+        em = getEntityManager();
+        em.getTransaction().begin();
+        Detalleventas detalleventas;
+        try {
+            detalleventas = em.getReference(Detalleventas.class, id);
+            detalleventas.getIdDetalleVenta();
+        } catch (EntityNotFoundException enfe) {
+            throw new NonexistentEntityException("El detalleventas con ID " + id + " ya no existe.", enfe);
+        }
+
+        em.remove(detalleventas);
+        em.getTransaction().commit();
+    } finally {
+        if (em != null) {
+            em.close();
+        }
+    }
+}
+
 
     public List<Detalleventas> findDetalleventasEntities() {
         return findDetalleventasEntities(true, -1, -1);

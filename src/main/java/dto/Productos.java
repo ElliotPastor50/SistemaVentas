@@ -2,6 +2,7 @@ package dto;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.List;
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -53,8 +54,9 @@ public class Productos implements Serializable {
     @NotNull
     @Column(name = "Stock")
     private int stock;
-    @OneToOne(cascade = CascadeType.ALL, mappedBy = "idProducto")
-    private Detalleventas detalleventas;
+    @OneToMany(mappedBy = "idProducto", cascade = CascadeType.ALL)
+    private List<Detalleventas> detalleventasList;
+
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "idProducto")
     private Collection<Kardex> kardexCollection;
 
@@ -104,12 +106,12 @@ public class Productos implements Serializable {
         this.stock = stock;
     }
 
-    public Detalleventas getDetalleventas() {
-        return detalleventas;
+    public List<Detalleventas> getDetalleventasList() {
+        return detalleventasList;
     }
 
-    public void setDetalleventas(Detalleventas detalleventas) {
-        this.detalleventas = detalleventas;
+    public void setDetalleventasList(List<Detalleventas> detalleventasList) {
+        this.detalleventasList = detalleventasList;
     }
 
     @XmlTransient
@@ -145,5 +147,5 @@ public class Productos implements Serializable {
     public String toString() {
         return "dto.Productos[ idProducto=" + idProducto + " ]";
     }
-    
+
 }

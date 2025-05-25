@@ -17,6 +17,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 @WebServlet(urlPatterns = {"/producto"})
@@ -48,7 +49,7 @@ public class ProductoServlet extends HttpServlet {
             }
             response.getWriter().write(jsonArray.toString());
 
-        } catch (Exception e) {
+        } catch (IOException | JSONException e) {
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
