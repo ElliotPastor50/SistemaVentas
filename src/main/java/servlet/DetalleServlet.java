@@ -87,8 +87,6 @@ public class DetalleServlet extends HttpServlet {
     response.getWriter().write(jsonArray.toString());
     }*/
     
-    @WebServlet(name = "DetalleVentaServlet", urlPatterns = {"/detalle"})
-public class DetalleVentaServlet extends HttpServlet {
 
     EntityManagerFactory emf = Persistence.createEntityManagerFactory("com.mycompany_SistemaVentas_war_1.0-SNAPSHOTPU");
     DetalleventasJpaController detalleDAO;
