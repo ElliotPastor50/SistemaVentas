@@ -81,7 +81,7 @@ public class ProductoServlet extends HttpServlet {
             productosDAO.create(nuevo);
 
             respuesta.put("success", true);
-            respuesta.put("message", "Usuario creado correctamente");
+            respuesta.put("message", "Producto agregado correctamente");
         } catch (Exception e) {
             respuesta.put("success", false);
             respuesta.put("message", "Error: " + e.getMessage());
@@ -159,10 +159,10 @@ public class ProductoServlet extends HttpServlet {
                 productosDAO.edit(existente);
 
                 respuesta.put("success", true);
-                respuesta.put("message", "Usuario actualizado");
+                respuesta.put("message", "Producto actualizado");
             } else {
                 respuesta.put("success", false);
-                respuesta.put("message", "Usuario no encontrado");
+                respuesta.put("message", "Producto no encontrado");
             }
 
             response.getWriter().write(respuesta.toString());

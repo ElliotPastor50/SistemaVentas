@@ -162,8 +162,8 @@
                                 const idProducto = parseInt(fila.querySelector("select").value);
                                 const detallePrecio = parseFloat(fila.querySelector(".precio").value);
                                 const cantProd = parseInt(fila.querySelector(".cantidad").value);
-                                const sbttTotal = parseFloat(fila.querySelector(".subtotal").value);
-                                detalles.push({idVenta, idProducto, detallePrecio, cantProd, sbttTotal});
+                                const sbttPrecio = parseFloat(fila.querySelector(".subtotal").value);
+                                detalles.push({idVenta, idProducto, detallePrecio, cantProd, sbttPrecio});
                             });
 
                             return fetch("detalle", {
@@ -205,55 +205,6 @@
                         });
             }
 
-
-            /*
-             function cargarVentas() {
-             fetch("venta")
-             .then(res => res.json())
-             .then(ventas => {
-             const tabla = document.getElementById("tablaVentas");
-             tabla.innerHTML = "";
-             ventas.forEach(v => {
-             console.log('Fecha recibida:', v.fecha); // para debug
-             
-             let fechaFormateada = "—";
-             if (v.fecha) {
-             // Prueba crear la fecha directo
-             let d = new Date(v.fecha);
-             if (isNaN(d)) {
-             // Si no es válido, parsear manualmente (ejemplo con formato dd-MM-yyyy hh:mm)
-             const [fechaPart, horaPart] = v.fecha.split(' ');
-             if (fechaPart && horaPart) {
-             const [dia, mes, anio] = fechaPart.split('-').map(Number);
-             const [horas, minutos] = horaPart.split(':').map(Number);
-             d = new Date(anio, mes - 1, dia, horas, minutos);
-             }
-             }
-             
-             if (!isNaN(d)) {
-             const pad = (n) => n.toString().padStart(2, '0');
-             
-             const dia = pad(d.getDate());
-             const mes = pad(d.getMonth() + 1);
-             const anio = d.getFullYear();
-             
-             const horas = pad(d.getHours());
-             const minutos = pad(d.getMinutes());
-             
-             fechaFormateada = `${dia}-${mes}-${anio} ${horas}:${minutos}`;
-             }
-             }
-             
-             tabla.innerHTML += `<tr>
-             <td>${v.idVenta}</td>
-             <td>${v.nombreCliente}</td>
-             <td>${fechaFormateada}</td>
-             </tr>`;
-             });
-             });
-             }
-             
-             */
         </script>
     </body>
 </html>
