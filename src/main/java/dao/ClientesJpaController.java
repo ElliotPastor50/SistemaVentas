@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package dao;
 
 import dao.exceptions.IllegalOrphanException;
@@ -19,11 +15,9 @@ import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
+import javax.persistence.TypedQuery;
 
-/**
- *
- * @author Naomi Alejandra Vega
- */
+
 public class ClientesJpaController implements Serializable {
 
     public ClientesJpaController(EntityManagerFactory emf) {
@@ -200,5 +194,17 @@ public class ClientesJpaController implements Serializable {
             em.close();
         }
     }
-    
+
+    public Clientes findByNombre(String nombre) {
+        EntityManager em = getEntityManager();
+        try {
+            TypedQuery<Clientes> query = em.createNamedQuery("Clientes.findByNombre", Clientes.class);
+            query.setParameter("nombre", nombre);
+            List<Clientes> resultados = query.getResultList();
+            return resultados.isEmpty() ? null : resultados.get(0);
+        } finally {
+            em.close();
+        }
+    }
+
 }
