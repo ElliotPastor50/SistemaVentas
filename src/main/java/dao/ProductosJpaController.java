@@ -1,3 +1,7 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
 package dao;
 
 import dao.exceptions.IllegalOrphanException;
@@ -8,31 +12,33 @@ import javax.persistence.EntityNotFoundException;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 import dto.Detalleventas;
-import dto.Kardex;
-import dto.Productos;
 import java.util.ArrayList;
 import java.util.Collection;
+import dto.Kardex;
+import dto.Productos;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
 
+/**
+ *
+ * @author Naomi Alejandra Vega
+ */
 public class ProductosJpaController implements Serializable {
 
     public ProductosJpaController(EntityManagerFactory emf) {
         this.emf = emf;
     }
-    private EntityManagerFactory emf = Persistence.createEntityManagerFactory("com.mycompany_SistemaVentas_war_1.0-SNAPSHOTPU");
-
-    public ProductosJpaController() {
-        this.emf = Persistence.createEntityManagerFactory("com.mycompany_SistemaVentas_war_1.0-SNAPSHOTPU");
-    }
+    private EntityManagerFactory emf = null;
 
     public EntityManager getEntityManager() {
         return emf.createEntityManager();
     }
 
     public void create(Productos productos) {
+        if (productos.getDetalleventasCollection() == null) {
+            productos.setDetalleventasCollection(new ArrayList<Detalleventas>());
+        }
         if (productos.getKardexCollection() == null) {
             productos.setKardexCollection(new ArrayList<Kardex>());
         }
@@ -40,11 +46,12 @@ public class ProductosJpaController implements Serializable {
         try {
             em = getEntityManager();
             em.getTransaction().begin();
-            Detalleventas detalleventas = productos.getDetalleventas();
-            if (detalleventas != null) {
-                detalleventas = em.getReference(detalleventas.getClass(), detalleventas.getIdDetalleVenta());
-                productos.setDetalleventas(detalleventas);
+            Collection<Detalleventas> attachedDetalleventasCollection = new ArrayList<Detalleventas>();
+            for (Detalleventas detalleventasCollectionDetalleventasToAttach : productos.getDetalleventasCollection()) {
+                detalleventasCollectionDetalleventasToAttach = em.getReference(detalleventasCollectionDetalleventasToAttach.getClass(), detalleventasCollectionDetalleventasToAttach.getIdDetalleVenta());
+                attachedDetalleventasCollection.add(detalleventasCollectionDetalleventasToAttach);
             }
+            productos.setDetalleventasCollection(attachedDetalleventasCollection);
             Collection<Kardex> attachedKardexCollection = new ArrayList<Kardex>();
             for (Kardex kardexCollectionKardexToAttach : productos.getKardexCollection()) {
                 kardexCollectionKardexToAttach = em.getReference(kardexCollectionKardexToAttach.getClass(), kardexCollectionKardexToAttach.getIdKardex());
@@ -52,14 +59,14 @@ public class ProductosJpaController implements Serializable {
             }
             productos.setKardexCollection(attachedKardexCollection);
             em.persist(productos);
-            if (detalleventas != null) {
-                Productos oldIdProductoOfDetalleventas = detalleventas.getIdProducto();
-                if (oldIdProductoOfDetalleventas != null) {
-                    oldIdProductoOfDetalleventas.setDetalleventas(null);
-                    oldIdProductoOfDetalleventas = em.merge(oldIdProductoOfDetalleventas);
+            for (Detalleventas detalleventasCollectionDetalleventas : productos.getDetalleventasCollection()) {
+                Productos oldIdProductoOfDetalleventasCollectionDetalleventas = detalleventasCollectionDetalleventas.getIdProducto();
+                detalleventasCollectionDetalleventas.setIdProducto(productos);
+                detalleventasCollectionDetalleventas = em.merge(detalleventasCollectionDetalleventas);
+                if (oldIdProductoOfDetalleventasCollectionDetalleventas != null) {
+                    oldIdProductoOfDetalleventasCollectionDetalleventas.getDetalleventasCollection().remove(detalleventasCollectionDetalleventas);
+                    oldIdProductoOfDetalleventasCollectionDetalleventas = em.merge(oldIdProductoOfDetalleventasCollectionDetalleventas);
                 }
-                detalleventas.setIdProducto(productos);
-                detalleventas = em.merge(detalleventas);
             }
             for (Kardex kardexCollectionKardex : productos.getKardexCollection()) {
                 Productos oldIdProductoOfKardexCollectionKardex = kardexCollectionKardex.getIdProducto();
@@ -84,16 +91,18 @@ public class ProductosJpaController implements Serializable {
             em = getEntityManager();
             em.getTransaction().begin();
             Productos persistentProductos = em.find(Productos.class, productos.getIdProducto());
-            Detalleventas detalleventasOld = persistentProductos.getDetalleventas();
-            Detalleventas detalleventasNew = productos.getDetalleventas();
+            Collection<Detalleventas> detalleventasCollectionOld = persistentProductos.getDetalleventasCollection();
+            Collection<Detalleventas> detalleventasCollectionNew = productos.getDetalleventasCollection();
             Collection<Kardex> kardexCollectionOld = persistentProductos.getKardexCollection();
             Collection<Kardex> kardexCollectionNew = productos.getKardexCollection();
             List<String> illegalOrphanMessages = null;
-            if (detalleventasOld != null && !detalleventasOld.equals(detalleventasNew)) {
-                if (illegalOrphanMessages == null) {
-                    illegalOrphanMessages = new ArrayList<String>();
+            for (Detalleventas detalleventasCollectionOldDetalleventas : detalleventasCollectionOld) {
+                if (!detalleventasCollectionNew.contains(detalleventasCollectionOldDetalleventas)) {
+                    if (illegalOrphanMessages == null) {
+                        illegalOrphanMessages = new ArrayList<String>();
+                    }
+                    illegalOrphanMessages.add("You must retain Detalleventas " + detalleventasCollectionOldDetalleventas + " since its idProducto field is not nullable.");
                 }
-                illegalOrphanMessages.add("You must retain Detalleventas " + detalleventasOld + " since its idProducto field is not nullable.");
             }
             for (Kardex kardexCollectionOldKardex : kardexCollectionOld) {
                 if (!kardexCollectionNew.contains(kardexCollectionOldKardex)) {
@@ -106,10 +115,13 @@ public class ProductosJpaController implements Serializable {
             if (illegalOrphanMessages != null) {
                 throw new IllegalOrphanException(illegalOrphanMessages);
             }
-            if (detalleventasNew != null) {
-                detalleventasNew = em.getReference(detalleventasNew.getClass(), detalleventasNew.getIdDetalleVenta());
-                productos.setDetalleventas(detalleventasNew);
+            Collection<Detalleventas> attachedDetalleventasCollectionNew = new ArrayList<Detalleventas>();
+            for (Detalleventas detalleventasCollectionNewDetalleventasToAttach : detalleventasCollectionNew) {
+                detalleventasCollectionNewDetalleventasToAttach = em.getReference(detalleventasCollectionNewDetalleventasToAttach.getClass(), detalleventasCollectionNewDetalleventasToAttach.getIdDetalleVenta());
+                attachedDetalleventasCollectionNew.add(detalleventasCollectionNewDetalleventasToAttach);
             }
+            detalleventasCollectionNew = attachedDetalleventasCollectionNew;
+            productos.setDetalleventasCollection(detalleventasCollectionNew);
             Collection<Kardex> attachedKardexCollectionNew = new ArrayList<Kardex>();
             for (Kardex kardexCollectionNewKardexToAttach : kardexCollectionNew) {
                 kardexCollectionNewKardexToAttach = em.getReference(kardexCollectionNewKardexToAttach.getClass(), kardexCollectionNewKardexToAttach.getIdKardex());
@@ -118,14 +130,16 @@ public class ProductosJpaController implements Serializable {
             kardexCollectionNew = attachedKardexCollectionNew;
             productos.setKardexCollection(kardexCollectionNew);
             productos = em.merge(productos);
-            if (detalleventasNew != null && !detalleventasNew.equals(detalleventasOld)) {
-                Productos oldIdProductoOfDetalleventas = detalleventasNew.getIdProducto();
-                if (oldIdProductoOfDetalleventas != null) {
-                    oldIdProductoOfDetalleventas.setDetalleventas(null);
-                    oldIdProductoOfDetalleventas = em.merge(oldIdProductoOfDetalleventas);
+            for (Detalleventas detalleventasCollectionNewDetalleventas : detalleventasCollectionNew) {
+                if (!detalleventasCollectionOld.contains(detalleventasCollectionNewDetalleventas)) {
+                    Productos oldIdProductoOfDetalleventasCollectionNewDetalleventas = detalleventasCollectionNewDetalleventas.getIdProducto();
+                    detalleventasCollectionNewDetalleventas.setIdProducto(productos);
+                    detalleventasCollectionNewDetalleventas = em.merge(detalleventasCollectionNewDetalleventas);
+                    if (oldIdProductoOfDetalleventasCollectionNewDetalleventas != null && !oldIdProductoOfDetalleventasCollectionNewDetalleventas.equals(productos)) {
+                        oldIdProductoOfDetalleventasCollectionNewDetalleventas.getDetalleventasCollection().remove(detalleventasCollectionNewDetalleventas);
+                        oldIdProductoOfDetalleventasCollectionNewDetalleventas = em.merge(oldIdProductoOfDetalleventasCollectionNewDetalleventas);
+                    }
                 }
-                detalleventasNew.setIdProducto(productos);
-                detalleventasNew = em.merge(detalleventasNew);
             }
             for (Kardex kardexCollectionNewKardex : kardexCollectionNew) {
                 if (!kardexCollectionOld.contains(kardexCollectionNewKardex)) {
@@ -168,12 +182,12 @@ public class ProductosJpaController implements Serializable {
                 throw new NonexistentEntityException("The productos with id " + id + " no longer exists.", enfe);
             }
             List<String> illegalOrphanMessages = null;
-            Detalleventas detalleventasOrphanCheck = productos.getDetalleventas();
-            if (detalleventasOrphanCheck != null) {
+            Collection<Detalleventas> detalleventasCollectionOrphanCheck = productos.getDetalleventasCollection();
+            for (Detalleventas detalleventasCollectionOrphanCheckDetalleventas : detalleventasCollectionOrphanCheck) {
                 if (illegalOrphanMessages == null) {
                     illegalOrphanMessages = new ArrayList<String>();
                 }
-                illegalOrphanMessages.add("This Productos (" + productos + ") cannot be destroyed since the Detalleventas " + detalleventasOrphanCheck + " in its detalleventas field has a non-nullable idProducto field.");
+                illegalOrphanMessages.add("This Productos (" + productos + ") cannot be destroyed since the Detalleventas " + detalleventasCollectionOrphanCheckDetalleventas + " in its detalleventasCollection field has a non-nullable idProducto field.");
             }
             Collection<Kardex> kardexCollectionOrphanCheck = productos.getKardexCollection();
             for (Kardex kardexCollectionOrphanCheckKardex : kardexCollectionOrphanCheck) {
@@ -239,5 +253,5 @@ public class ProductosJpaController implements Serializable {
             em.close();
         }
     }
-
+    
 }

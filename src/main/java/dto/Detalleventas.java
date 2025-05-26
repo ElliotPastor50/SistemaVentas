@@ -137,5 +137,5 @@ public class Detalleventas implements Serializable {
     public String toString() {
         return "dto.Detalleventas[ idDetalleVenta=" + idDetalleVenta + " ]";
     }
-    
+
 }

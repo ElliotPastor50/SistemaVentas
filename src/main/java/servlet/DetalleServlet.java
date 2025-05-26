@@ -68,6 +68,8 @@ public class DetalleServlet extends HttpServlet {
             while ((line = reader.readLine()) != null) {
                 sb.append(line);
             }
+            String body = sb.toString();
+            System.out.println("DETALLE.POST BODY: " + body);
             JSONObject json = new JSONObject(sb.toString());
 
             int idVenta = json.getInt("idVenta");

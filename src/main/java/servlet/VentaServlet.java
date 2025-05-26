@@ -30,13 +30,13 @@ public class VentaServlet extends HttpServlet {
     @Override
     public void init() throws ServletException {
         emf = Persistence.createEntityManagerFactory("com.mycompany_SistemaVentas_war_1.0-SNAPSHOTPU");
-        ventaCtrl    = new VentasJpaController(emf);
+        ventaCtrl = new VentasJpaController(emf);
         clienteCtrl = new ClientesJpaController(emf);
     }
 
     // GET /venta
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) 
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
         try {
             List<Ventas> ventas = ventaCtrl.findVentasEntities();
@@ -59,10 +59,9 @@ public class VentaServlet extends HttpServlet {
 
     // POST /venta
     @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) 
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
         try {
-            // Leer todo el JSON de la petición
             BufferedReader reader = req.getReader();
             StringBuilder sb = new StringBuilder();
             String line;

@@ -203,46 +203,66 @@
             }
 
             async function registrarVenta() {
-                // Prepara datos
-                const idCli = document.getElementById('idCliente').value;
-                const fecha = document.getElementById('fechaVenta').value;
-                // 1) Registro de Venta
-                const resV = await fetch('venta', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    // Enviamos ID en lugar de nombre vacío
-                    body: JSON.stringify({idCliente: idCli, fecha})
-                });
-                const jsonV = await resV.json();
-                const idVenta = jsonV.idVenta;
+                try {
+                    // 1) Registro de Venta
+                    const idCli = parseInt(document.getElementById('idCliente').value, 10);
+                    const fecha = document.getElementById('fechaVenta').value;
+                    const payloadV = {idCliente: idCli, fecha};
 
-                // 2) Registro de Detalles
-                const filas = document.querySelectorAll('#productosContainer .row');
-                const detalles = [];
-                filas.forEach(f => {
-                    const id = f.id.replace('fila', '');
-                    const sel = f.querySelector(`.prodSel[data-fila="${id}"]`);
-                    const qty = f.querySelector(`.qtyInp[data-fila="${id}"]`);
-                    const price = f.querySelector(`.priceInp[data-fila="${id}"]`);
-                    detalles.push({
-                        idVenta,
-                        idProducto: +sel.value,
-                        cantProd: +qty.value,
-                        detallePrecio: +price.value,
-                        sbttTotal: +price.value * +qty.value
+                    const resV = await fetch('venta', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify(payloadV)
                     });
-                });
-                await fetch('detalle', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({idVenta, detalles})
-                });
+                    if (!resV.ok) {
+                        const text = await resV.text();
+                        throw new Error(`Error /venta: ${resV.status} ${text}`);
+                    }
+                    const {idVenta} = await resV.json();
 
-                // 3) Mostrar en tabla
-                agregarVentaATabla({idVenta, fecha, cliente: document.getElementById('clienteInput').value, detalles});
-                // Limpiar formulario
-                document.getElementById('productosContainer').innerHTML = '';
-                document.getElementById('btnRegistrar').disabled = true;
+                    // 2) Registro de Detalles
+                    // Reconstruyo el array para asegurar nombres correctos
+                    const filas = document.querySelectorAll('#productosContainer .row');
+                    const detallesPayload = Array.from(filas).map(f => {
+                        const id = f.id.replace('fila', '');
+                        const sel = f.querySelector(`.prodSel[data-fila="${id}"]`);
+                        const qty = f.querySelector(`.qtyInp[data-fila="${id}"]`);
+                        const price = f.querySelector(`.priceInp[data-fila="${id}"]`);
+                        const cantidad = parseInt(qty.value, 10);
+                        const detallePrecio = parseFloat(price.value);
+                        return {
+                            idProducto: parseInt(sel.value, 10),
+                            cantProd: cantidad,
+                            detallePrecio: detallePrecio,
+                            sbttTotal: detallePrecio * cantidad
+                        };
+                    });
+
+                    const resD = await fetch('detalle', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({idVenta, detalles: detallesPayload})
+                    });
+                    if (!resD.ok) {
+                        const text = await resD.text();
+                        throw new Error(`Error /detalle: ${resD.status} ${text}`);
+                    }
+                    const resultD = await resD.json(); // debería ser { estado: "ok" }
+
+                    // 3) Mostrar en tabla y limpiar
+                    agregarVentaATabla({
+                        idVenta,
+                        fecha,
+                        cliente: document.getElementById('clienteInput').value,
+                        detalles: detallesPayload
+                    });
+                    document.getElementById('productosContainer').innerHTML = '';
+                    document.getElementById('btnRegistrar').disabled = true;
+
+                } catch (err) {
+                    console.error(err);
+                    alert(err.message);
+                }
             }
 
             function agregarVentaATabla( { idVenta, fecha, cliente, detalles }) {

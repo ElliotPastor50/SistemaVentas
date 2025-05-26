@@ -53,8 +53,12 @@ public class Productos implements Serializable {
     @NotNull
     @Column(name = "Stock")
     private int stock;
-    @OneToOne(cascade = CascadeType.ALL, mappedBy = "idProducto")
-    private Detalleventas detalleventas;
+    //No olvides agregar GETTER y SETTER, ya que los elimine :3
+    //@OneToOne(cascade = CascadeType.ALL, mappedBy = "idProducto")
+    //private Detalleventas detalleventas;
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "idProducto")
+    private Collection<Detalleventas> detalleventasCollection;
+
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "idProducto")
     private Collection<Kardex> kardexCollection;
 
@@ -103,13 +107,14 @@ public class Productos implements Serializable {
     public void setStock(int stock) {
         this.stock = stock;
     }
-
-    public Detalleventas getDetalleventas() {
-        return detalleventas;
+    
+    @XmlTransient
+    public Collection<Detalleventas> getDetalleventasCollection() {
+        return detalleventasCollection;
     }
 
-    public void setDetalleventas(Detalleventas detalleventas) {
-        this.detalleventas = detalleventas;
+    public void setDetalleventasCollection(Collection<Detalleventas> detalleventasCollection) {
+        this.detalleventasCollection = detalleventasCollection;
     }
 
     @XmlTransient
@@ -145,5 +150,5 @@ public class Productos implements Serializable {
     public String toString() {
         return "dto.Productos[ idProducto=" + idProducto + " ]";
     }
-    
+
 }

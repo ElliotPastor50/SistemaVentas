@@ -1,3 +1,7 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
 package dao;
 
 import dao.exceptions.IllegalOrphanException;
@@ -14,14 +18,17 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
 
+/**
+ *
+ * @author Naomi Alejandra Vega
+ */
 public class DetalleventasJpaController implements Serializable {
 
     public DetalleventasJpaController(EntityManagerFactory emf) {
         this.emf = emf;
     }
-    private EntityManagerFactory emf = Persistence.createEntityManagerFactory("com.mycompany_SistemaVentas_war_1.0-SNAPSHOTPU");
+    private EntityManagerFactory emf = null;
 
     public EntityManager getEntityManager() {
         return emf.createEntityManager();
@@ -29,16 +36,6 @@ public class DetalleventasJpaController implements Serializable {
 
     public void create(Detalleventas detalleventas) throws IllegalOrphanException {
         List<String> illegalOrphanMessages = null;
-        Productos idProductoOrphanCheck = detalleventas.getIdProducto();
-        if (idProductoOrphanCheck != null) {
-            Detalleventas oldDetalleventasOfIdProducto = idProductoOrphanCheck.getDetalleventas();
-            if (oldDetalleventasOfIdProducto != null) {
-                if (illegalOrphanMessages == null) {
-                    illegalOrphanMessages = new ArrayList<String>();
-                }
-                illegalOrphanMessages.add("The Productos " + idProductoOrphanCheck + " already has an item of type Detalleventas whose idProducto column cannot be null. Please make another selection for the idProducto field.");
-            }
-        }
         Ventas idVentaOrphanCheck = detalleventas.getIdVenta();
         if (idVentaOrphanCheck != null) {
             Detalleventas oldDetalleventasOfIdVenta = idVentaOrphanCheck.getDetalleventas();
@@ -68,7 +65,7 @@ public class DetalleventasJpaController implements Serializable {
             }
             em.persist(detalleventas);
             if (idProducto != null) {
-                idProducto.setDetalleventas(detalleventas);
+                idProducto.getDetalleventasCollection().add(detalleventas);
                 idProducto = em.merge(idProducto);
             }
             if (idVenta != null) {
@@ -94,15 +91,6 @@ public class DetalleventasJpaController implements Serializable {
             Ventas idVentaOld = persistentDetalleventas.getIdVenta();
             Ventas idVentaNew = detalleventas.getIdVenta();
             List<String> illegalOrphanMessages = null;
-            if (idProductoNew != null && !idProductoNew.equals(idProductoOld)) {
-                Detalleventas oldDetalleventasOfIdProducto = idProductoNew.getDetalleventas();
-                if (oldDetalleventasOfIdProducto != null) {
-                    if (illegalOrphanMessages == null) {
-                        illegalOrphanMessages = new ArrayList<String>();
-                    }
-                    illegalOrphanMessages.add("The Productos " + idProductoNew + " already has an item of type Detalleventas whose idProducto column cannot be null. Please make another selection for the idProducto field.");
-                }
-            }
             if (idVentaNew != null && !idVentaNew.equals(idVentaOld)) {
                 Detalleventas oldDetalleventasOfIdVenta = idVentaNew.getDetalleventas();
                 if (oldDetalleventasOfIdVenta != null) {
@@ -125,11 +113,11 @@ public class DetalleventasJpaController implements Serializable {
             }
             detalleventas = em.merge(detalleventas);
             if (idProductoOld != null && !idProductoOld.equals(idProductoNew)) {
-                idProductoOld.setDetalleventas(null);
+                idProductoOld.getDetalleventasCollection().remove(detalleventas);
                 idProductoOld = em.merge(idProductoOld);
             }
             if (idProductoNew != null && !idProductoNew.equals(idProductoOld)) {
-                idProductoNew.setDetalleventas(detalleventas);
+                idProductoNew.getDetalleventasCollection().add(detalleventas);
                 idProductoNew = em.merge(idProductoNew);
             }
             if (idVentaOld != null && !idVentaOld.equals(idVentaNew)) {
@@ -171,7 +159,7 @@ public class DetalleventasJpaController implements Serializable {
             }
             Productos idProducto = detalleventas.getIdProducto();
             if (idProducto != null) {
-                idProducto.setDetalleventas(null);
+                idProducto.getDetalleventasCollection().remove(detalleventas);
                 idProducto = em.merge(idProducto);
             }
             Ventas idVenta = detalleventas.getIdVenta();
@@ -233,5 +221,5 @@ public class DetalleventasJpaController implements Serializable {
             em.close();
         }
     }
-
+    
 }
