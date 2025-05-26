@@ -1,3 +1,7 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
 package dto;
 
 import java.io.Serializable;
@@ -8,13 +12,17 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import javax.xml.bind.annotation.XmlRootElement;
 
+/**
+ *
+ * @author Naomi Alejandra Vega
+ */
 @Entity
 @Table(name = "detalleventas")
 @XmlRootElement
@@ -45,10 +53,10 @@ public class Detalleventas implements Serializable {
     @Column(name = "SbttPrecio")
     private double sbttPrecio;
     @JoinColumn(name = "IdProducto", referencedColumnName = "IdProducto")
-    @OneToOne(optional = false)
+    @ManyToOne(optional = false)
     private Productos idProducto;
     @JoinColumn(name = "IdVenta", referencedColumnName = "IdVenta")
-    @OneToOne(optional = false)
+    @ManyToOne(optional = false)
     private Ventas idVenta;
 
     public Detalleventas() {
@@ -137,5 +145,5 @@ public class Detalleventas implements Serializable {
     public String toString() {
         return "dto.Detalleventas[ idDetalleVenta=" + idDetalleVenta + " ]";
     }
-
+    
 }

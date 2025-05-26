@@ -1,7 +1,13 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
 package dto;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -13,13 +19,18 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-import javax.persistence.OneToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.validation.constraints.NotNull;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 
+/**
+ *
+ * @author Naomi Alejandra Vega
+ */
 @Entity
 @Table(name = "ventas")
 @XmlRootElement
@@ -40,11 +51,14 @@ public class Ventas implements Serializable {
     @Column(name = "fecha_venta")
     @Temporal(TemporalType.TIMESTAMP)
     private Date fechaVenta;
-    @OneToOne(cascade = CascadeType.ALL, mappedBy = "idVenta")
-    private Detalleventas detalleventas;
     @JoinColumn(name = "IdCliente", referencedColumnName = "IdCliente")
     @ManyToOne(optional = false)
     private Clientes idCliente;
+    //Relacion agregada
+    //Si empieza a haber errores con la lista, cambiar a colection para verificar
+    @OneToMany(mappedBy = "idVenta", cascade = CascadeType.ALL)
+    @XmlTransient
+    private List<Detalleventas> detalleventas;
 
     public Ventas() {
     }
@@ -72,14 +86,6 @@ public class Ventas implements Serializable {
 
     public void setFechaVenta(Date fechaVenta) {
         this.fechaVenta = fechaVenta;
-    }
-
-    public Detalleventas getDetalleventas() {
-        return detalleventas;
-    }
-
-    public void setDetalleventas(Detalleventas detalleventas) {
-        this.detalleventas = detalleventas;
     }
 
     public Clientes getIdCliente() {
@@ -114,5 +120,21 @@ public class Ventas implements Serializable {
     public String toString() {
         return "dto.Ventas[ idVenta=" + idVenta + " ]";
     }
+
+    public List<Detalleventas> getDetalleventas() {
+        return detalleventas;
+    }
+
+    public void setDetalleventas(List<Detalleventas> detalleventas) {
+        this.detalleventas = detalleventas;
+    }
+
+   
     
+   
+
+    
+    
+    
+
 }
