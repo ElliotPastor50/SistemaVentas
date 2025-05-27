@@ -10,10 +10,10 @@
         <class>dto.Ventas</class>
         <exclude-unlisted-classes>false</exclude-unlisted-classes>
         <properties>
-            <property name="javax.persistence.jdbc.url" value="jdbc:mysql://localhost:3306/sis_ventas_pruebas?serverTimezone=UTC"/>
-            <property name="javax.persistence.jdbc.user" value="root"/>
+            <property name="javax.persistence.jdbc.url" value="jdbc:mysql://distsis.online:3306/distsiso_sistemaventas_prueba?serverTimezone=UTC"/>
+            <property name="javax.persistence.jdbc.user" value="distsiso_prueba"/>
             <property name="javax.persistence.jdbc.driver" value="com.mysql.cj.jdbc.Driver"/>
-            <property name="javax.persistence.jdbc.password" value=""/>
+            <property name="javax.persistence.jdbc.password" value="perropianocascadasistema"/>
         </properties>
     </persistence-unit>
 </persistence>

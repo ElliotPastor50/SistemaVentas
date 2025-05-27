@@ -1,169 +1,188 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
-  <meta charset="UTF-8" />
-  <title>Gestión de Usuarios</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <style>
-    body {
-      background-color: #0d1117;
-      color: #e6edf3;
-      padding: 2rem;
-    }
-    .neon-text {
-      color: #00f7ff;
-      text-shadow: 0 0 5px #00f7ff, 0 0 10px #00f7ff;
-    }
-    .neon-border {
-      border: 1px solid #00f7ff;
-      box-shadow: 0 0 10px #00f7ff;
-    }
-    table th, table td {
-      vertical-align: middle;
-    }
-  </style>
-</head>
-<body>
+    <head>
+        <meta charset="UTF-8" />
+        <title>Gestión de Usuarios</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+        <style>
+            body {
+                background-color: #0d1117;
+                color: #e6edf3;
+                padding: 2rem;
+            }
+            .neon-text {
+                color: #00f7ff;
+                text-shadow: 0 0 5px #00f7ff, 0 0 10px #00f7ff;
+            }
+            .neon-border {
+                border: 1px solid #00f7ff;
+                box-shadow: 0 0 10px #00f7ff;
+            }
+            table th, table td {
+                vertical-align: middle;
+            }
+            .btn-neon {
+                background-color: #000000;
+                color: #00ffcc;
+                border: 1px solid #00ffcc;
+                box-shadow: 0 0 5px #00ffcc;
+            }
 
-  <div class="container">
-    <h2 class="text-center neon-text mb-4">🌟 Gestión de Usuarios</h2>
+            .btn-neon:hover {
+                background-color: #00ffcc;
+                color: #000;
+            }
 
-    <form id="usuarioForm" class="mb-4">
-      <input type="hidden" id="idUsuario">
-      <div class="mb-3">
-        <label class="form-label">Nombre:</label>
-        <input type="text" id="nombre" class="form-control neon-border" required>
-      </div>
-      <div class="mb-3">
-        <label class="form-label">Email:</label>
-        <input type="email" id="email" class="form-control neon-border" required>
-      </div>
-      <div class="mb-3">
-        <label class="form-label">Password:</label>
-        <input type="password" id="password" class="form-control neon-border" required>
-      </div>
-      <button type="button" class="btn btn-primary me-2" onclick="crearUsuario()">Crear</button>
-      <button type="button" class="btn btn-warning" onclick="actualizarUsuario()">Actualizar</button>
-    </form>
+            .back-button {
+                position: absolute;
+                top: 20px;
+                left: 20px;
+            }
+        </style>
+    </head>
+    <body>
+        <a href="menu.html" class="btn btn-neon back-button">
+            🔙 Volver
+        </a>
+        <div class="container">
+            <h2 class="text-center neon-text mb-4">🌟 Gestión de Usuarios</h2>
 
-    <h3 class="neon-text">📋 Lista de Usuarios</h3>
-    <div class="table-responsive">
-      <table class="table table-dark table-bordered table-hover neon-border" id="tablaUsuarios">
-        <thead class="table-light text-dark">
-          <tr>
-            <th>ID</th>
-            <th>Nombre</th>
-            <th>Email</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
-  </div>
+            <form id="usuarioForm" class="mb-4">
+                <input type="hidden" id="idUsuario">
+                <div class="mb-3">
+                    <label class="form-label">Nombre:</label>
+                    <input type="text" id="nombre" class="form-control neon-border" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Email:</label>
+                    <input type="email" id="email" class="form-control neon-border" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Password:</label>
+                    <input type="password" id="password" class="form-control neon-border" required>
+                </div>
+                <button type="button" class="btn btn-primary me-2" onclick="crearUsuario()">Crear</button>
+                <button type="button" class="btn btn-warning" onclick="actualizarUsuario()">Actualizar</button>
+            </form>
 
-  <script>
-    const apiUrl = "usuario";
+            <h3 class="neon-text">📋 Lista de Usuarios</h3>
+            <div class="table-responsive">
+                <table class="table table-dark table-bordered table-hover neon-border" id="tablaUsuarios">
+                    <thead class="table-light text-dark">
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Email</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
 
-    document.addEventListener("DOMContentLoaded", obtenerUsuarios);
+        <script>
+            const apiUrl = "usuario";
 
-    function obtenerUsuarios() {
-      fetch(apiUrl)
-        .then(res => res.json())
-        .then(data => {
-          const tbody = document.querySelector("#tablaUsuarios tbody");
-          tbody.innerHTML = "";
-          data.forEach(u => {
-            const tr = document.createElement("tr");
-            tr.innerHTML = `
-              <td>${u.idUsuario}</td>
-              <td>${u.nombre}</td>
-              <td>${u.email}</td>
-              <td>
-                <button class="btn btn-sm btn-info me-2" onclick="cargarParaEditar(${u.idUsuario}, '${u.nombre}', '${u.email}')">✏️</button>
-                <button class="btn btn-sm btn-danger" onclick="confirmarEliminar(${u.idUsuario})">🗑️</button>
-              </td>
-            `;
-            tbody.appendChild(tr);
-          });
-        });
-    }
+            document.addEventListener("DOMContentLoaded", obtenerUsuarios);
 
-    function crearUsuario() {
-      const nombre = document.getElementById("nombre").value;
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
+            function obtenerUsuarios() {
+                fetch(apiUrl)
+                        .then(res => res.json())
+                        .then(data => {
+                            const tbody = document.querySelector("#tablaUsuarios tbody");
+                            tbody.innerHTML = "";
+                            data.forEach(u => {
+                                const tr = document.createElement("tr");
+                                tr.innerHTML = `
+                    <td>${u.idUsuario}</td>
+                    <td>${u.nombre}</td>
+                    <td>${u.email}</td>
+                    <td>
+                      <button class="btn btn-sm btn-info me-2" onclick="cargarParaEditar(${u.idUsuario}, '${u.nombre}', '${u.email}')">✏️</button>
+                      <button class="btn btn-sm btn-danger" onclick="confirmarEliminar(${u.idUsuario})">🗑️</button>
+                    </td>
+                  `;
+                                tbody.appendChild(tr);
+                            });
+                        });
+            }
 
-      fetch(apiUrl, {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({ action: "crear", nombre, email, password })
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          alert("✅ Usuario creado correctamente");
-          document.getElementById("usuarioForm").reset();
-          obtenerUsuarios();
-        } else {
-          alert("❌ Error: " + data.message);
-        }
-      });
-    }
+            function crearUsuario() {
+                const nombre = document.getElementById("nombre").value;
+                const email = document.getElementById("email").value;
+                const password = document.getElementById("password").value;
 
-    function cargarParaEditar(id, nombre, email) {
-      document.getElementById("idUsuario").value = id;
-      document.getElementById("nombre").value = nombre;
-      document.getElementById("email").value = email;
-      document.getElementById("password").value = "";
-    }
+                fetch(apiUrl, {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({action: "crear", nombre, email, password})
+                })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                alert("✅ Usuario creado correctamente");
+                                document.getElementById("usuarioForm").reset();
+                                obtenerUsuarios();
+                            } else {
+                                alert("❌ Error: " + data.message);
+                            }
+                        });
+            }
 
-    function actualizarUsuario() {
-      const id = document.getElementById("idUsuario").value;
-      const nombre = document.getElementById("nombre").value;
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
+            function cargarParaEditar(id, nombre, email) {
+                document.getElementById("idUsuario").value = id;
+                document.getElementById("nombre").value = nombre;
+                document.getElementById("email").value = email;
+                document.getElementById("password").value = "";
+            }
 
-      if (!id) {
-        alert("⚠️ Seleccione un usuario para actualizar");
-        return;
-      }
+            function actualizarUsuario() {
+                const id = document.getElementById("idUsuario").value;
+                const nombre = document.getElementById("nombre").value;
+                const email = document.getElementById("email").value;
+                const password = document.getElementById("password").value;
 
-      fetch(apiUrl, {
-        method: "PUT",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({ IdUsuario: parseInt(id), nombre, email, password })
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          alert("✅ Usuario actualizado");
-          document.getElementById("usuarioForm").reset();
-          obtenerUsuarios();
-        } else {
-          alert("❌ Error: " + data.message);
-        }
-      });
-    }
+                if (!id) {
+                    alert("⚠️ Seleccione un usuario para actualizar");
+                    return;
+                }
 
-    function confirmarEliminar(id) {
-      if (confirm("⚠️ ¿Estás segura de que deseas eliminar este usuario?")) {
-        fetch(apiUrl, {
-          method: "DELETE",
-          headers: {"Content-Type": "application/json"},
-          body: JSON.stringify({ idUsuario: id })
-        })
-        .then(res => res.json())
-        .then(data => {
-          if (data.success) {
-            alert("🗑️ Usuario eliminado correctamente");
-            obtenerUsuarios();
-          } else {
-            alert("❌ Error: " + data.message);
-          }
-        });
-      }
-    }
-  </script>
-</body>
+                fetch(apiUrl, {
+                    method: "PUT",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({IdUsuario: parseInt(id), nombre, email, password})
+                })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                alert("✅ Usuario actualizado");
+                                document.getElementById("usuarioForm").reset();
+                                obtenerUsuarios();
+                            } else {
+                                alert("❌ Error: " + data.message);
+                            }
+                        });
+            }
+
+            function confirmarEliminar(id) {
+                if (confirm("⚠️ ¿Estás segura de que deseas eliminar este usuario?")) {
+                    fetch(apiUrl, {
+                        method: "DELETE",
+                        headers: {"Content-Type": "application/json"},
+                        body: JSON.stringify({idUsuario: id})
+                    })
+                            .then(res => res.json())
+                            .then(data => {
+                                if (data.success) {
+                                    alert("🗑️ Usuario eliminado correctamente");
+                                    obtenerUsuarios();
+                                } else {
+                                    alert("❌ Error: " + data.message);
+                                }
+                            });
+                }
+            }
+        </script>
+    </body>
 </html>
